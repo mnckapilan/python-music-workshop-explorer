@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  🐉 HERE BE DRAGONS
+  ============================================================
+  You don't need to edit this file — just use the explorer!
+
+  What it's doing:
+    This isn't Python — it's actually THREE different languages
+    living in one file:
+
+    HTML  (the skeleton)
+      Describes the structure of the page: the search bar,
+      the song cards, the pop-up panel. Anything inside
+      < > angle brackets is HTML.
+
+    CSS  (the skin)
+      Controls how everything looks: colours, fonts, spacing,
+      the dark background. You'll find it inside <style> tags.
+
+    JavaScript  (the brain)
+      Makes the page interactive. When you type in the search
+      box or click a card, JavaScript is doing that work.
+      You'll find it inside <script> tags at the bottom.
+
+    When explorer.py starts a web server, your browser fetches
+    this file and runs all three languages together. The page
+    then loads songs.json and builds the song cards on the fly.
+
+  Curious about web development? This is exactly how real
+  web apps work. HTML + CSS + JavaScript is a great next step
+  after Python!
+  ============================================================
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Music Data Explorer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Warm charcoal — brown-black undertone, not cold blue-black */
+      --bg:        #13100e;
+      --surface:   #1c1815;
+      --card:      #231e1b;
+      --card-hover:#2c2622;
+      --border:    #362f2b;
+
+      /* Electric rose (primary) + warm amber (secondary) */
+      --accent:    #f7547a;
+      --accent2:   #ffab4f;
+
+      /* Warm text — off-white with a hint of warmth */
+      --text:      #ede8e3;
+      --muted:     #8a7f78;
+
+      /* Semantic */
+      --green:     #52c97a;
+      --yellow:    #ffab4f;
+      --pink:      #f7547a;
+      --orange:    #ff7b54;
+      --radius:    10px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    header h1 span { color: var(--accent); }
+    .song-count {
+      margin-left: auto;
+      font-size: 0.8rem;
+      color: var(--muted);
+      background: var(--card);
+      padding: 0.25rem 0.6rem;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+
+    /* ── Controls ── */
+    .controls {
+      padding: 1.25rem 2rem;
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      background: var(--bg);
+    }
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+    }
+    .search-wrap svg {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+    input[type="search"], select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.9rem;
+      padding: 0.6rem 0.85rem 0.6rem 2.25rem;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+    select { padding-left: 0.85rem; min-width: 160px; flex: 0 0 auto; }
+    input[type="search"]:focus, select:focus {
+      border-color: var(--accent);
+    }
+    input[type="search"]::placeholder { color: var(--muted); }
+
+    /* ── Grid ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+      padding: 0 2rem 2rem;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.1rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      position: relative;
+    }
+    .card:hover {
+      background: var(--card-hover);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .card.active {
+      border-color: var(--accent);
+      background: var(--card-hover);
+    }
+    .card-index {
+      font-size: 0.7rem;
+      color: var(--muted);
+      font-family: "SF Mono", "Fira Code", monospace;
+      margin-bottom: 0.4rem;
+    }
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      line-height: 1.3;
+      margin-bottom: 0.2rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-artist {
+      font-size: 0.82rem;
+      color: var(--accent2);
+      margin-bottom: 0.6rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-meta {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 0.68rem;
+      padding: 0.18rem 0.5rem;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: var(--bg);
+    }
+    /* Genre badges get per-genre colours via JS (data-genre attribute).
+       These are the fallback and overrides for non-genre badges. */
+    .badge.bpm    { color: var(--accent2); border-color: #3d2e18; background: #201808; }
+    .badge.year   { color: var(--muted);   }
+    .badge.exp    { color: var(--pink);    border-color: #3d1a20; background: #200d11; }
+
+    /* Per-genre palette — applied via JS data-genre attribute */
+    .badge[data-genre="Pop"]             { color: #f9809a; border-color: #3d1f26; background: #200f14; }
+    .badge[data-genre="Hip-Hop/Rap"]     { color: #ffab4f; border-color: #3d2b12; background: #201508; }
+    .badge[data-genre="Alternative"]     { color: #6ec99a; border-color: #1a3324; background: #0d1a12; }
+    .badge[data-genre="R&B/Soul"]        { color: #b89af7; border-color: #2e2550; background: #18132e; }
+    .badge[data-genre="Country"]         { color: #f0c060; border-color: #3a2e10; background: #1e1808; }
+    .badge[data-genre="Dance"]           { color: #4ecfdf; border-color: #163438; background: #0a1c1e; }
+    .badge[data-genre="Electronic"]      { color: #5ab4f7; border-color: #142a3d; background: #081520; }
+    .badge[data-genre="Rock"]            { color: #f08060; border-color: #3a1f14; background: #1e100a; }
+    .badge[data-genre="Reggae"]          { color: #68c97a; border-color: #1a3020; background: #0d1810; }
+    .badge[data-genre="Soundtrack"]      { color: #9ab0c8; border-color: #22303d; background: #111820; }
+    .badge[data-genre="Soul"]            { color: #b89af7; border-color: #2e2550; background: #18132e; }
+    .badge[data-genre="Rap"]             { color: #ffab4f; border-color: #3d2b12; background: #201508; }
+
+    /* ── No results ── */
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: var(--muted);
+      padding: 4rem 0;
+      font-size: 0.9rem;
+    }
+
+    /* ── Python panel (modal) ── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 20;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .overlay.open { display: flex; }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 680px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 1.5rem;
+      position: relative;
+    }
+    .panel-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 0.25rem 0.6rem;
+      transition: color 0.15s;
+    }
+    .panel-close:hover { color: var(--text); }
+
+    .panel-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.15rem;
+    }
+    .panel-artist {
+      color: var(--accent2);
+      font-size: 0.88rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .panel h3 {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+      margin-top: 1.25rem;
+    }
+    .panel h3:first-of-type { margin-top: 0; }
+
+    /* ── Code block ── */
+    pre {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+      font-size: 0.8rem;
+      line-height: 1.7;
+      overflow-x: auto;
+      position: relative;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.72rem;
+      padding: 0.2rem 0.55rem;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+    .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+    /* syntax colours */
+    .kw  { color: #bb9af7; }   /* keyword */
+    .fn  { color: #7aa2f7; }   /* function */
+    .st  { color: #9ece6a; }   /* string */
+    .nm  { color: var(--orange); }  /* number */
+    .cm  { color: var(--muted); }   /* comment */
+    .bl  { color: var(--pink);  }   /* bool */
+    .key { color: var(--accent2); } /* dict key */
+
+    /* ── Result count bar ── */
+    .result-bar {
+      padding: 0 2rem 0.75rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .result-bar strong { color: var(--text); }
+
+    /* ── Welcome modal ── */
+    .welcome-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 30;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .welcome-overlay.open { display: flex; }
+
+    .welcome-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 520px;
+      padding: 2rem;
+    }
+    .welcome-panel h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .welcome-panel h2 span { color: var(--accent); }
+    .welcome-intro {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    .welcome-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+    .welcome-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.85rem 1rem;
+    }
+    .step-icon {
+      font-size: 1.25rem;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 0.05rem;
+    }
+    .step-text strong {
+      display: block;
+      font-size: 0.88rem;
+      margin-bottom: 0.2rem;
+    }
+    .step-text p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .welcome-note {
+      font-size: 0.78rem;
+      color: var(--muted);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    .welcome-note strong { color: var(--text); }
+    .welcome-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 0.75rem;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    .welcome-btn:hover { opacity: 0.88; }
+
+    /* ── Help button in header ── */
+    .help-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.78rem;
+      padding: 0.25rem 0.7rem;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .help-btn:hover { color: var(--text); border-color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<header>
+  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="color:var(--accent)">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"/>
+  </svg>
+  <h1>Music <span>Data Explorer</span></h1>
+  <span class="song-count" id="totalCount">— songs</span>
+  <button class="help-btn" id="helpBtn">? how to use</button>
+</header>
+
+<div class="controls">
+  <div class="search-wrap">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/>
+    </svg>
+    <input type="search" id="searchInput" placeholder="Search by title, artist or album…" autocomplete="off" />
+  </div>
+  <select id="genreFilter">
+    <option value="">All genres</option>
+  </select>
+</div>
+
+<div class="result-bar" id="resultBar"></div>
+<div class="grid" id="grid"></div>
+
+<!-- Welcome modal -->
+<div class="welcome-overlay open" id="welcomeOverlay">
+  <div class="welcome-panel">
+    <h2>Welcome to the Music <span>Data Explorer</span> 🎵</h2>
+    <p class="welcome-intro">
+      This tool lets you browse real songs stored as Python dictionaries —
+      the same data your exercises use. Find a song you like, then see
+      exactly how to access it in your Python code.
+    </p>
+
+    <div class="welcome-steps">
+      <div class="welcome-step">
+        <div class="step-icon">🔍</div>
+        <div class="step-text">
+          <strong>Search or filter</strong>
+          <p>Type a song title, artist name, or album in the search bar.
+             Use the genre dropdown to narrow things down.</p>
+        </div>
+      </div>
+      <div class="welcome-step">
+        <div class="step-icon">🃏</div>
+        <div class="step-text">
+          <strong>Click any card</strong>
+          <p>Find a song you recognise and click its card to open the
+             Python code panel.</p>
+        </div>
+      </div>
+      <div class="welcome-step">
+        <div class="step-icon">🐍</div>
+        <div class="step-text">
+          <strong>Copy the Python code</strong>
+          <p>The panel shows you the exact lines to paste into your
+             exercise — including the index number and every field value.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="welcome-note">
+      <strong>A note on the library:</strong> this is a sample of songs
+      from 70 popular artists — roughly 9,000 tracks in total. It's not
+      exhaustive, and your favourite song might not be here. That's totally
+      fine! The data is just here to make the exercises feel more real.
+    </div>
+
+    <button class="welcome-btn" id="welcomeClose">Let's explore →</button>
+  </div>
+</div>
+
+<!-- Python panel -->
+<div class="overlay" id="overlay">
+  <div class="panel" id="panel">
+    <button class="panel-close" id="panelClose">✕ close</button>
+    <div class="panel-title" id="panelTitle"></div>
+    <div class="panel-artist" id="panelArtist"></div>
+
+    <h3>Access this song by index</h3>
+    <div style="position:relative">
+      <pre id="codeIndex"></pre>
+      <button class="copy-btn" onclick="copyCode('codeIndex', this)">copy</button>
+    </div>
+
+    <h3>Find songs by this artist</h3>
+    <div style="position:relative">
+      <pre id="codeSearch"></pre>
+      <button class="copy-btn" onclick="copyCode('codeSearch', this)">copy</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let SONGS = [];
+let filtered = [];
+
+const PAGE_SIZE = 100;   // max cards rendered at once
+
+// ── Load data ──────────────────────────────────────────────
+fetch('songs.json')
+  .then(r => r.json())
+  .then(data => {
+    // Pre-compute once: index and a single lowercase search key per song.
+    // This avoids repeated .indexOf() and .toLowerCase() calls on every keystroke.
+    SONGS = data.map((s, i) => ({
+      ...s,
+      _idx: i,
+      _key: `${s.title} ${s.artist} ${s.album}`.toLowerCase(),
+    }));
+    document.getElementById('totalCount').textContent = `${SONGS.length} songs`;
+    buildGenreFilter();
+    applyFilters();
+  })
+  .catch(() => {
+    document.getElementById('grid').innerHTML =
+      '<p class="empty">Could not load songs.json.<br>Make sure you launched the explorer with <code>python3 data/explorer.py</code></p>';
+  });
+
+// ── Genre filter ───────────────────────────────────────────
+function buildGenreFilter() {
+  const genres = [...new Set(SONGS.map(s => s.genre))].sort();
+  const sel = document.getElementById('genreFilter');
+  genres.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g;
+    opt.textContent = g;
+    sel.appendChild(opt);
+  });
+}
+
+// ── Search + filter ────────────────────────────────────────
+function applyFilters() {
+  const q     = document.getElementById('searchInput').value.toLowerCase().trim();
+  const genre = document.getElementById('genreFilter').value;
+
+  filtered = SONGS.filter(s => {
+    const matchQ = !q || s._key.includes(q);   // single pre-lowercased string
+    const matchG = !genre || s.genre === genre;
+    return matchQ && matchG;
+  });
+
+  renderGrid();
+}
+
+// Debounce search input — wait 150 ms after the last keystroke before filtering.
+// Genre dropdown fires immediately (it's a deliberate click, not rapid typing).
+let _debounce;
+document.getElementById('searchInput').addEventListener('input', () => {
+  clearTimeout(_debounce);
+  _debounce = setTimeout(applyFilters, 150);
+});
+document.getElementById('genreFilter').addEventListener('change', applyFilters);
+
+// ── Render cards ───────────────────────────────────────────
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  const bar  = document.getElementById('resultBar');
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<p class="empty">No songs match your search.</p>';
+    bar.innerHTML = '';
+    return;
+  }
+
+  const visible = filtered.slice(0, PAGE_SIZE);
+  const more    = filtered.length - visible.length;
+  const moreMsg = more > 0 ? ` — refine your search to see the remaining <strong>${more.toLocaleString()}</strong>` : '';
+  bar.innerHTML  = `Showing <strong>${visible.length.toLocaleString()}</strong> of <strong>${filtered.length.toLocaleString()}</strong> matches${moreMsg} — click any card for Python code`;
+
+  // _idx was stored at load time — no indexOf() scan needed
+  grid.innerHTML = visible.map(s => {
+    const expBadge = s.explicit ? '<span class="badge exp">explicit</span>' : '';
+    return `
+      <div class="card" onclick="openPanel(${s._idx})">
+        <div class="card-index">SONGS[${s._idx}]</div>
+        <div class="card-title" title="${esc(s.title)}">${esc(s.title)}</div>
+        <div class="card-artist">${esc(s.artist)}</div>
+        <div class="card-meta">
+          <span class="badge genre" data-genre="${esc(s.genre)}">${esc(s.genre)}</span>
+          <span class="badge bpm">${s.bpm} BPM</span>
+          <span class="badge year">${s.year}</span>
+          ${expBadge}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// ── Python panel ───────────────────────────────────────────
+function openPanel(i) {
+  const s = SONGS[i];
+  document.getElementById('panelTitle').textContent  = s.title;
+  document.getElementById('panelArtist').textContent = s.artist + ' · ' + s.year;
+
+  // Code block 1 — index access
+  document.getElementById('codeIndex').innerHTML = formatIndexCode(s, i);
+
+  // Code block 2 — search by artist
+  document.getElementById('codeSearch').innerHTML = formatSearchCode(s);
+
+  document.getElementById('overlay').classList.add('open');
+}
+
+function kw(s)  { return `<span class="kw">${s}</span>`; }
+function fn(s)  { return `<span class="fn">${s}</span>`; }
+function st(s)  { return `<span class="st">"${s}"</span>`; }
+function nm(n)  { return `<span class="nm">${n}</span>`; }
+function bl(b)  { return `<span class="bl">${b}</span>`; }
+function cm(s)  { return `<span class="cm">${s}</span>`; }
+function key(s) { return `<span class="key">"${s}"</span>`; }
+
+function formatIndexCode(s, i) {
+  const lines = [
+    `${kw('from')} music_data ${kw('import')} SONGS`,
+    ``,
+    `song = SONGS[${nm(i)}]  ${cm('# ' + s.title + ' — ' + s.artist)}`,
+    ``,
+    `${fn('print')}(song[${key('title')}])       ${cm('# → ' + JSON.stringify(s.title))}`,
+    `${fn('print')}(song[${key('artist')}])      ${cm('# → ' + JSON.stringify(s.artist))}`,
+    `${fn('print')}(song[${key('album')}])       ${cm('# → ' + JSON.stringify(s.album))}`,
+    `${fn('print')}(song[${key('year')}])        ${cm('# → ' + s.year)}`,
+    `${fn('print')}(song[${key('genre')}])       ${cm('# → ' + JSON.stringify(s.genre))}`,
+    `${fn('print')}(song[${key('duration')}])    ${cm('# → ' + s.duration + ' mins')}`,
+    `${fn('print')}(song[${key('bpm')}])         ${cm('# → ' + s.bpm)}`,
+    `${fn('print')}(song[${key('explicit')}])    ${cm('# → ' + s.explicit)}`,
+    `${fn('print')}(song[${key('play_count')}])  ${cm('# → ' + s.play_count)}`,
+  ];
+  return lines.join('\n');
+}
+
+function formatSearchCode(s) {
+  const artistStr = s.artist.replace(/"/g, '\\"');
+  const lines = [
+    `${kw('from')} music_data ${kw('import')} SONGS`,
+    ``,
+    `${cm('# Find all songs by this artist:')}`,
+    `results = [song ${kw('for')} song ${kw('in')} SONGS`,
+    `           ${kw('if')} song[${key('artist')}] == ${st(artistStr)}]`,
+    ``,
+    `${fn('print')}(${fn('len')}(results), ${st('songs found')})`,
+    ``,
+    `${kw('for')} song ${kw('in')} results:`,
+    `    ${fn('print')}(song[${key('title')}])`,
+  ];
+  return lines.join('\n');
+}
+
+// ── Close panel ────────────────────────────────────────────
+document.getElementById('panelClose').addEventListener('click', closePanel);
+document.getElementById('overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('overlay')) closePanel();
+});
+function closePanel() {
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// ── Welcome modal ──────────────────────────────────────────
+document.getElementById('welcomeClose').addEventListener('click', closeWelcome);
+document.getElementById('helpBtn').addEventListener('click', () => {
+  document.getElementById('welcomeOverlay').classList.add('open');
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeWelcome();
+    closePanel();
+  }
+});
+
+function closeWelcome() {
+  document.getElementById('welcomeOverlay').classList.remove('open');
+}
+
+// ── Copy button ────────────────────────────────────────────
+function copyCode(id, btn) {
+  const text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'copy';
+      btn.classList.remove('copied');
+    }, 1800);
+  });
+}
+</script>
+</body>
+</html>
