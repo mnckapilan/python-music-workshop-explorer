@@ -15,7 +15,7 @@
 #    responses, and pathlib to save the file. These are concepts
 #    from well beyond Exercise 7!
 #
-#  To refresh the song library (your teacher will do this):
+#  To refresh the song library (a volunteer will do this):
 #      python3 data/fetch_songs.py
 # ============================================================
 
