@@ -40,11 +40,26 @@ if __name__ == "__main__":
     os.chdir(DIR)
     url = f"http://localhost:{PORT}/explorer.html"
 
-    with http.server.HTTPServer(("", PORT), _Handler) as httpd:
-        print(f"Music Data Explorer → {url}")
-        print("Press Ctrl+C to stop.\n")
-        threading.Timer(0.4, lambda: webbrowser.open(url)).start()
-        try:
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            print("\nStopped.")
+    try:
+        httpd = http.server.HTTPServer(("", PORT), _Handler)
+    except OSError:
+        print(f"Port {PORT} is already in use. Close the existing explorer window and try again.")
+        raise SystemExit(1)
+
+    print(f"Music Data Explorer → {url}")
+    print("Opening in your browser...")
+    print("Press Enter (or close this window) to stop.\n")
+
+    threading.Timer(0.4, lambda: webbrowser.open(url)).start()
+
+    server_thread = threading.Thread(target=httpd.serve_forever)
+    server_thread.daemon = True
+    server_thread.start()
+
+    try:
+        input()
+    except (KeyboardInterrupt, EOFError):
+        pass
+    finally:
+        print("Stopping explorer...")
+        httpd.shutdown()
