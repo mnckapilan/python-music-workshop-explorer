@@ -184,23 +184,24 @@
     .list-row:hover .col-idx { box-shadow: inset 2px 0 0 var(--accent); }
 
     .list-row .col, .list-header .col {
-      flex-shrink: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       padding: 0 0.5rem;
     }
-    /* column widths — must match exactly between header and rows */
-    .col-idx    { flex: 0 0 72px;  font-family: "SF Mono","Fira Code",monospace; font-size: 0.7rem; color: var(--muted); }
-    .col-title  { flex: 2 1 0;     min-width: 0; font-weight: 500; }
-    .col-artist { flex: 1.5 1 0;   min-width: 0; color: var(--accent2); font-size: 0.84rem; }
-    .col-album  { flex: 1.5 1 0;   min-width: 0; color: var(--muted);   font-size: 0.82rem; }
-    .col-year   { flex: 0 0 56px;  text-align: right; font-family: "SF Mono","Fira Code",monospace; font-size: 0.75rem; color: var(--muted); }
-    .col-genre  { flex: 0 0 120px; }
-    .col-dur    { flex: 0 0 54px;  text-align: right; font-family: "SF Mono","Fira Code",monospace; font-size: 0.75rem; color: var(--muted); }
-    .col-bpm    { flex: 0 0 52px;  text-align: right; font-family: "SF Mono","Fira Code",monospace; font-size: 0.75rem; color: var(--accent2); }
-    .col-plays  { flex: 0 0 64px;  text-align: right; font-family: "SF Mono","Fira Code",monospace; font-size: 0.75rem; color: var(--muted); }
-    .col-exp    { flex: 0 0 40px;  text-align: center; }
+    /* column widths — must match exactly between header and rows.
+       flex: 0 0 Npx = fixed, won't grow or shrink.
+       flex: N 1 0   = flexible, will shrink to fit. */
+    .col-idx    { flex: 0 0 60px;  font-family: "SF Mono","Fira Code",monospace; font-size: 0.7rem; color: var(--muted); }
+    .col-title  { flex: 2 1 0;     min-width: 80px; font-weight: 500; }
+    .col-artist { flex: 1.5 1 0;   min-width: 60px; color: var(--accent2); font-size: 0.84rem; }
+    .col-album  { flex: 1 1 0;     min-width: 60px; color: var(--muted);   font-size: 0.82rem; }
+    .col-year   { flex: 0 0 50px;  text-align: right; font-family: "SF Mono","Fira Code",monospace; font-size: 0.75rem; color: var(--muted); }
+    .col-genre  { flex: 0 0 110px; }
+    .col-dur    { flex: 0 0 48px;  text-align: right; font-family: "SF Mono","Fira Code",monospace; font-size: 0.75rem; color: var(--muted); }
+    .col-bpm    { flex: 0 0 48px;  text-align: right; font-family: "SF Mono","Fira Code",monospace; font-size: 0.75rem; color: var(--accent2); }
+    .col-plays  { flex: 0 0 56px;  text-align: right; font-family: "SF Mono","Fira Code",monospace; font-size: 0.75rem; color: var(--muted); }
+    .col-exp    { flex: 0 0 32px;  text-align: center; }
 
     /* ── Pagination ── */
     .pagination {
