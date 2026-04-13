@@ -743,28 +743,68 @@ function esc(str) {
     .replace(/"/g,'&quot;');
 }
 
-// ── iTunes lookup (lazy, cached) ───────────────────────────
-const _itunesCache = {};
+// ── iTunes lookup — mem cache + localStorage + throttled queue
+const _memCache = {};         // in-memory: survives filter/page changes within session
+const LS_PREFIX = 'mex1_';   // bump suffix to bust stale localStorage entries
+
+// Serialize all outgoing requests with a 250 ms gap to avoid 429 bursts.
+// Each fetchItunesData call that misses both caches appends to this chain.
+let _queue = Promise.resolve();
+
+function _doFetch(url) {
+  return fetch(url).then(r => {
+    if (r.status === 429) {
+      // Rate-limited — pause 10 s then retry once
+      console.warn('iTunes 429 — backing off 10 s…');
+      return new Promise(res => setTimeout(res, 10000))
+        .then(() => fetch(url))
+        .then(r2 => r2.ok ? r2.json() : { results: [] });
+    }
+    return r.json();
+  });
+}
 
 function fetchItunesData(s) {
-  if (_itunesCache[s._idx] !== undefined) return Promise.resolve(_itunesCache[s._idx]);
+  // 1. In-memory cache (fastest — same session, no parse overhead)
+  if (_memCache[s._idx] !== undefined) return Promise.resolve(_memCache[s._idx]);
+
+  // 2. localStorage cache (survives page reloads — kills repeat-reload 429s)
+  const lsKey = LS_PREFIX + s._idx;
+  try {
+    const stored = localStorage.getItem(lsKey);
+    if (stored !== null) {
+      const parsed = JSON.parse(stored);
+      _memCache[s._idx] = parsed;
+      return Promise.resolve(parsed);
+    }
+  } catch {}
+
+  // 3. Throttled iTunes fetch — enqueue with 250 ms gap between requests
   const params = new URLSearchParams({ term: `${s.artist} ${s.title}`, entity: 'song', limit: 5, country: 'US' });
-  return fetch(`https://itunes.apple.com/search?${params}`)
-    .then(r => r.json())
+  const url = `https://itunes.apple.com/search?${params}`;
+
+  const req = _queue
+    .then(() => new Promise(res => setTimeout(res, 250)))
+    .then(() => _doFetch(url))
     .then(data => {
       const results = data.results || [];
       const match = results.find(r =>
-        r.trackName?.toLowerCase() === s.title.toLowerCase() &&
+        r.trackName?.toLowerCase()  === s.title.toLowerCase() &&
         r.artistName?.toLowerCase() === s.artist.toLowerCase()
       ) || results[0] || null;
       const result = match ? {
         artwork: match.artworkUrl100 ? match.artworkUrl100.replace('100x100bb', '400x400bb') : null,
         preview: match.previewUrl || null,
       } : null;
-      _itunesCache[s._idx] = result;
+      _memCache[s._idx] = result;
+      try { localStorage.setItem(lsKey, JSON.stringify(result)); } catch {}
       return result;
     })
-    .catch(() => { _itunesCache[s._idx] = null; return null; });
+    .catch(() => { _memCache[s._idx] = null; return null; });
+
+  // Advance the shared queue (errors must not break the chain)
+  _queue = req.catch(() => {});
+  return req;
 }
 
 // ── Lazy card art via IntersectionObserver ─────────────────
