@@ -536,7 +536,7 @@
 </div>
 
 <script>
-let SONGS = [];
+let songLibrary = [];
 let filtered = [];
 
 const PAGE_SIZE = 100;   // max cards rendered at once
@@ -547,12 +547,12 @@ fetch('https://raw.githubusercontent.com/mnckapilan/python-music-workshop/main/d
   .then(data => {
     // Pre-compute once: index and a single lowercase search key per song.
     // This avoids repeated .indexOf() and .toLowerCase() calls on every keystroke.
-    SONGS = data.map((s, i) => ({
+    songLibrary = data.map((s, i) => ({
       ...s,
       _idx: i,
       _key: `${s.title} ${s.artist} ${s.album}`.toLowerCase(),
     }));
-    document.getElementById('totalCount').textContent = `${SONGS.length} songs`;
+    document.getElementById('totalCount').textContent = `${songLibrary.length} songs`;
     buildGenreFilter();
     applyFilters();
   })
@@ -563,7 +563,7 @@ fetch('https://raw.githubusercontent.com/mnckapilan/python-music-workshop/main/d
 
 // ── Genre filter ───────────────────────────────────────────
 function buildGenreFilter() {
-  const genres = [...new Set(SONGS.map(s => s.genre))].sort();
+  const genres = [...new Set(songLibrary.map(s => s.genre))].sort();
   const sel = document.getElementById('genreFilter');
   genres.forEach(g => {
     const opt = document.createElement('option');
@@ -578,7 +578,7 @@ function applyFilters() {
   const q     = document.getElementById('searchInput').value.toLowerCase().trim();
   const genre = document.getElementById('genreFilter').value;
 
-  filtered = SONGS.filter(s => {
+  filtered = songLibrary.filter(s => {
     const matchQ = !q || s._key.includes(q);   // single pre-lowercased string
     const matchG = !genre || s.genre === genre;
     return matchQ && matchG;
@@ -617,7 +617,7 @@ function renderGrid() {
     const expBadge = s.explicit ? '<span class="badge exp">explicit</span>' : '';
     return `
       <div class="card" onclick="openPanel(${s._idx})">
-        <div class="card-index">SONGS[${s._idx}]</div>
+        <div class="card-index">song_library[${s._idx}]</div>
         <div class="card-title" title="${esc(s.title)}">${esc(s.title)}</div>
         <div class="card-artist">${esc(s.artist)}</div>
         <div class="card-meta">
@@ -640,7 +640,7 @@ function esc(str) {
 
 // ── Python panel ───────────────────────────────────────────
 function openPanel(i) {
-  const s = SONGS[i];
+  const s = songLibrary[i];
   document.getElementById('panelTitle').textContent  = s.title;
   document.getElementById('panelArtist').textContent = s.artist + ' · ' + s.year;
 
@@ -663,9 +663,9 @@ function key(s) { return `<span class="key">"${s}"</span>`; }
 
 function formatIndexCode(s, i) {
   const lines = [
-    `${kw('from')} music_data ${kw('import')} SONGS`,
+    `${kw('from')} music_data ${kw('import')} song_library`,
     ``,
-    `song = SONGS[${nm(i)}]  ${cm('# ' + s.title + ' — ' + s.artist)}`,
+    `song = song_library[${nm(i)}]  ${cm('# ' + s.title + ' — ' + s.artist)}`,
     ``,
     `${fn('print')}(song[${key('title')}])       ${cm('# → ' + JSON.stringify(s.title))}`,
     `${fn('print')}(song[${key('artist')}])      ${cm('# → ' + JSON.stringify(s.artist))}`,
@@ -683,10 +683,10 @@ function formatIndexCode(s, i) {
 function formatSearchCode(s) {
   const artistStr = s.artist.replace(/"/g, '\\"');
   const lines = [
-    `${kw('from')} music_data ${kw('import')} SONGS`,
+    `${kw('from')} music_data ${kw('import')} song_library`,
     ``,
     `${cm('# Find all songs by this artist:')}`,
-    `results = [song ${kw('for')} song ${kw('in')} SONGS`,
+    `results = [song ${kw('for')} song ${kw('in')} song_library`,
     `           ${kw('if')} song[${key('artist')}] == ${st(artistStr)}]`,
     ``,
     `${fn('print')}(${fn('len')}(results), ${st('songs found')})`,
