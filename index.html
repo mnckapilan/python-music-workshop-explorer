@@ -166,14 +166,12 @@
       font-size: 0.84rem;
     }
 
-    thead {
+    /* sticky per-th (not thead) so overflow-x: auto doesn't break it */
+    th {
       position: sticky;
       top: var(--header-h);
       z-index: 50;
       background: var(--surface);
-    }
-
-    th {
       padding: 0 0.75rem;
       height: 36px;
       text-align: left;
@@ -187,7 +185,6 @@
       cursor: pointer;
       user-select: none;
       transition: color 0.12s;
-      position: relative;
     }
     th:hover { color: var(--text); }
     th.sorted { color: var(--accent2); }
@@ -211,19 +208,9 @@
       border-bottom: 1px solid rgba(54, 47, 43, 0.6);
       cursor: pointer;
       transition: background 0.08s;
-      position: relative;
-    }
-    tbody tr::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 2px;
-      background: var(--accent);
-      opacity: 0;
-      transition: opacity 0.1s;
     }
     tbody tr:hover { background: var(--card-hover); }
-    tbody tr:hover::before { opacity: 1; }
+    tbody tr:hover td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
 
     td {
       padding: 0 0.75rem;
@@ -237,7 +224,7 @@
     .col-title { min-width: 150px; }
     .col-artist{ min-width: 120px; max-width: 180px; }
     .col-album { min-width: 110px; max-width: 200px; }
-    .col-year  { width: 58px; min-width: 58px; }
+    .col-year  { width: 58px; min-width: 58px; text-align: right; }
     .col-genre { min-width: 110px; }
     .col-dur   { width: 58px; min-width: 58px; text-align: right; }
     .col-bpm   { width: 54px; min-width: 54px; text-align: right; }
@@ -971,7 +958,7 @@ function observeRowArt() {
         el.appendChild(img);
       });
     });
-  }, { rootMargin: '200px' });
+  }, { rootMargin: '100px' });
   document.querySelectorAll('.row-art').forEach(el => _artObserver.observe(el));
 }
 
