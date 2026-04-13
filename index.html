@@ -11,7 +11,7 @@
 
     HTML  (the skeleton)
       Describes the structure of the page: the search bar,
-      the song list, the pop-up panel. Anything inside
+      the song cards, the pop-up panel. Anything inside
       < > angle brackets is HTML.
 
     CSS  (the skin)
@@ -20,12 +20,12 @@
 
     JavaScript  (the brain)
       Makes the page interactive. When you type in the search
-      box or click a row, JavaScript is doing that work.
+      box or click a card, JavaScript is doing that work.
       You'll find it inside <script> tags at the bottom.
 
     This page is hosted on GitHub Pages. When your browser loads
     it, the page fetches the song data from GitHub and builds
-    the song list on the fly.
+    the song cards on the fly.
 
   Curious about web development? This is exactly how real
   web apps work. HTML + CSS + JavaScript is a great next step
@@ -41,21 +41,27 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
+      /* Warm charcoal — brown-black undertone, not cold blue-black */
       --bg:        #13100e;
       --surface:   #1c1815;
       --card:      #231e1b;
-      --card-hover:#272120;
+      --card-hover:#2c2622;
       --border:    #362f2b;
+
+      /* Electric rose (primary) + warm amber (secondary) */
       --accent:    #f7547a;
       --accent2:   #ffab4f;
+
+      /* Warm text — off-white with a hint of warmth */
       --text:      #ede8e3;
       --muted:     #8a7f78;
+
+      /* Semantic */
       --green:     #52c97a;
+      --yellow:    #ffab4f;
       --pink:      #f7547a;
       --orange:    #ff7b54;
       --radius:    10px;
-      --mono:      "SF Mono", "Fira Code", "Cascadia Code", monospace;
-      --header-h:  57px;
     }
 
     body {
@@ -69,49 +75,37 @@
     header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 0 2rem;
-      height: var(--header-h);
+      padding: 1.25rem 2rem;
       display: flex;
       align-items: center;
-      gap: 0.85rem;
+      gap: 1rem;
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 10;
     }
     header h1 {
-      font-size: 1.05rem;
+      font-size: 1.15rem;
       font-weight: 600;
-      letter-spacing: -0.025em;
+      letter-spacing: -0.02em;
     }
     header h1 span { color: var(--accent); }
     .song-count {
       margin-left: auto;
-      font-size: 0.72rem;
+      font-size: 0.8rem;
       color: var(--muted);
-      font-family: var(--mono);
-      letter-spacing: 0.02em;
-    }
-    .help-btn {
-      background: transparent;
-      border: 1px solid var(--border);
+      background: var(--card);
+      padding: 0.25rem 0.6rem;
       border-radius: 20px;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 0.72rem;
-      padding: 0.2rem 0.65rem;
-      transition: color 0.15s, border-color 0.15s;
-      white-space: nowrap;
+      border: 1px solid var(--border);
     }
-    .help-btn:hover { color: var(--text); border-color: var(--accent); }
 
     /* ── Controls ── */
     .controls {
-      padding: 0.85rem 2rem;
+      padding: 1.25rem 2rem;
       display: flex;
-      gap: 0.65rem;
+      gap: 0.75rem;
       flex-wrap: wrap;
       background: var(--bg);
-      border-bottom: 1px solid var(--border);
     }
     .search-wrap {
       position: relative;
@@ -129,183 +123,120 @@
     input[type="search"], select {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: var(--radius);
       color: var(--text);
-      font-size: 0.85rem;
-      padding: 0.5rem 0.85rem 0.5rem 2.2rem;
+      font-size: 0.9rem;
+      padding: 0.6rem 0.85rem 0.6rem 2.25rem;
       outline: none;
       width: 100%;
       transition: border-color 0.15s;
     }
     select { padding-left: 0.85rem; min-width: 160px; flex: 0 0 auto; }
-    input[type="search"]:focus, select:focus { border-color: var(--accent); }
+    input[type="search"]:focus, select:focus {
+      border-color: var(--accent);
+    }
     input[type="search"]::placeholder { color: var(--muted); }
 
-    /* ── Result bar ── */
-    .result-bar {
-      padding: 0.5rem 2rem;
-      font-size: 0.72rem;
-      color: var(--muted);
-      letter-spacing: 0.01em;
-      border-bottom: 1px solid var(--border);
-      min-height: 2rem;
-      display: flex;
-      align-items: center;
-    }
-    .result-bar strong { color: var(--text); font-weight: 500; }
-
-    /* ── Table wrap ── */
-    .table-wrap {
-      overflow-x: auto;
+    /* ── Grid ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+      padding: 0 2rem 2rem;
     }
 
-    /* ── Table ── */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.84rem;
-    }
-
-    /* sticky per-th (not thead) so overflow-x: auto doesn't break it */
-    th {
-      position: sticky;
-      top: var(--header-h);
-      z-index: 50;
-      background: var(--surface);
-      padding: 0 0.75rem;
-      height: 36px;
-      text-align: left;
-      font-size: 0.67rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      border-bottom: 1px solid var(--border);
-      white-space: nowrap;
-      cursor: pointer;
-      user-select: none;
-      transition: color 0.12s;
-    }
-    th:hover { color: var(--text); }
-    th.sorted { color: var(--accent2); }
-    th .sort-icon {
-      display: inline-block;
-      margin-left: 0.3rem;
-      font-style: normal;
-      font-size: 0.6rem;
-      opacity: 0.4;
-      vertical-align: middle;
-    }
-    th:hover .sort-icon { opacity: 0.7; }
-    th.sorted .sort-icon { opacity: 1; color: var(--accent2); }
-    th.no-sort { cursor: default; }
-    th.no-sort:hover { color: var(--muted); }
-
-    /* right-align numeric headers */
-    th.num { text-align: right; }
-
-    tbody tr {
-      border-bottom: 1px solid rgba(54, 47, 43, 0.6);
-      cursor: pointer;
-      transition: background 0.08s;
-    }
-    tbody tr:hover { background: var(--card-hover); }
-    tbody tr:hover td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
-
-    td {
-      padding: 0 0.75rem;
-      height: 52px;
-      vertical-align: middle;
-    }
-
-    /* ── Column widths ── */
-    .col-idx   { width: 64px; min-width: 64px; }
-    .col-art   { width: 52px; min-width: 52px; padding: 0 0.4rem; }
-    .col-title { min-width: 150px; }
-    .col-artist{ min-width: 120px; max-width: 180px; }
-    .col-album { min-width: 110px; max-width: 200px; }
-    .col-year  { width: 58px; min-width: 58px; text-align: right; }
-    .col-genre { min-width: 110px; }
-    .col-dur   { width: 58px; min-width: 58px; text-align: right; }
-    .col-bpm   { width: 54px; min-width: 54px; text-align: right; }
-    .col-plays { width: 64px; min-width: 64px; text-align: right; }
-    .col-exp   { width: 38px; min-width: 38px; text-align: center; }
-
-    /* ── Cell content ── */
-    td.col-idx {
-      font-family: var(--mono);
-      font-size: 0.68rem;
-      color: var(--muted);
-    }
-    .row-title-text {
-      font-weight: 500;
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      max-width: 260px;
-    }
-    td.col-artist {
-      color: var(--accent2);
-      font-size: 0.82rem;
-    }
-    td.col-artist span,
-    td.col-album span {
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    td.col-album { color: var(--muted); font-size: 0.8rem; }
-    td.col-year  { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
-    td.col-dur   { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
-    td.col-bpm   { font-family: var(--mono); font-size: 0.75rem; color: var(--accent2); }
-    td.col-plays { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
-
-    /* ── Row thumbnail ── */
-    .row-art {
-      width: 40px;
-      height: 40px;
-      border-radius: 5px;
+    /* ── Card ── */
+    .card {
       background: var(--card);
       border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.1rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      position: relative;
+    }
+    .card:hover {
+      background: var(--card-hover);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .card.active {
+      border-color: var(--accent);
+      background: var(--card-hover);
+    }
+
+    /* ── Card album art ── */
+    .card-art {
+      margin: -1rem -1.1rem 0.85rem;
+      border-radius: var(--radius) var(--radius) 0 0;
+      aspect-ratio: 1;
       overflow: hidden;
+      background: var(--bg);
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
     }
-    .row-art img {
+    .card-art img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: block;
+      opacity: 0;
+      transition: opacity 0.25s;
       position: absolute;
       inset: 0;
-      opacity: 0;
-      transition: opacity 0.2s;
     }
-    .row-art img.loaded { opacity: 1; }
-    .row-art-placeholder {
-      font-size: 0.95rem;
+    .card-art img.loaded { opacity: 1; }
+    .card-art-placeholder {
+      font-size: 2.5rem;
       color: var(--border);
       user-select: none;
     }
 
-    /* ── Badges ── */
+    .card-index {
+      font-size: 0.7rem;
+      color: var(--muted);
+      font-family: "SF Mono", "Fira Code", monospace;
+      margin-bottom: 0.4rem;
+    }
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      line-height: 1.3;
+      margin-bottom: 0.2rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-artist {
+      font-size: 0.82rem;
+      color: var(--accent2);
+      margin-bottom: 0.6rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-meta {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
     .badge {
-      display: inline-block;
-      font-size: 0.63rem;
-      padding: 0.13rem 0.42rem;
+      font-size: 0.68rem;
+      padding: 0.18rem 0.5rem;
       border-radius: 20px;
       border: 1px solid var(--border);
       color: var(--muted);
       background: var(--bg);
-      white-space: nowrap;
-      line-height: 1.5;
     }
-    .badge.exp { color: var(--pink); border-color: #3d1a20; background: #200d11; font-weight: 600; }
+    /* Genre badges get per-genre colours via JS (data-genre attribute).
+       These are the fallback and overrides for non-genre badges. */
+    .badge.bpm    { color: var(--accent2); border-color: #3d2e18; background: #201808; }
+    .badge.year   { color: var(--muted);   }
+    .badge.exp    { color: var(--pink);    border-color: #3d1a20; background: #200d11; }
 
+    /* Per-genre palette — applied via JS data-genre attribute */
     .badge[data-genre="Pop"]             { color: #f9809a; border-color: #3d1f26; background: #200f14; }
     .badge[data-genre="Hip-Hop/Rap"]     { color: #ffab4f; border-color: #3d2b12; background: #201508; }
     .badge[data-genre="Alternative"]     { color: #6ec99a; border-color: #1a3324; background: #0d1a12; }
@@ -319,63 +250,13 @@
     .badge[data-genre="Soul"]            { color: #b89af7; border-color: #2e2550; background: #18132e; }
     .badge[data-genre="Rap"]             { color: #ffab4f; border-color: #3d2b12; background: #201508; }
 
-    /* ── Empty row ── */
-    .empty-cell {
+    /* ── No results ── */
+    .empty {
+      grid-column: 1 / -1;
       text-align: center;
       color: var(--muted);
-      padding: 4rem 0 !important;
-      height: auto !important;
-      font-size: 0.88rem;
-    }
-
-    /* ── Pagination ── */
-    .pagination {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.35rem;
-      padding: 1.25rem 2rem;
-      border-top: 1px solid var(--border);
-    }
-    .page-btn {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 0.75rem;
-      font-family: var(--mono);
-      padding: 0.35rem 0.7rem;
-      transition: color 0.12s, border-color 0.12s, background 0.12s;
-      line-height: 1;
-    }
-    .page-btn:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
-    .page-btn:disabled { opacity: 0.3; cursor: default; }
-    .page-btn.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
-      font-weight: 600;
-      cursor: default;
-    }
-    .page-btn.nav {
-      padding: 0.35rem 0.9rem;
-      font-family: inherit;
-      font-size: 0.78rem;
-      letter-spacing: 0.01em;
-    }
-    .page-ellipsis {
-      color: var(--muted);
-      font-size: 0.75rem;
-      padding: 0 0.1rem;
-      font-family: var(--mono);
-    }
-    .page-info {
-      font-size: 0.72rem;
-      color: var(--muted);
-      font-family: var(--mono);
-      padding: 0 0.5rem;
-      white-space: nowrap;
+      padding: 4rem 0;
+      font-size: 0.9rem;
     }
 
     /* ── Python panel (modal) ── */
@@ -383,8 +264,8 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.65);
-      z-index: 200;
+      background: rgba(0,0,0,0.6);
+      z-index: 20;
       align-items: center;
       justify-content: center;
       padding: 1rem;
@@ -411,13 +292,184 @@
       border-radius: 6px;
       color: var(--muted);
       cursor: pointer;
-      font-size: 0.78rem;
-      padding: 0.22rem 0.55rem;
+      font-size: 0.8rem;
+      padding: 0.25rem 0.6rem;
       transition: color 0.15s;
     }
     .panel-close:hover { color: var(--text); }
 
-    /* Panel header: art + info side by side */
+    .panel-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.15rem;
+    }
+    .panel-artist {
+      color: var(--accent2);
+      font-size: 0.88rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .panel h3 {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+      margin-top: 1.25rem;
+    }
+    .panel h3:first-of-type { margin-top: 0; }
+
+    /* ── Code block ── */
+    pre {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+      font-size: 0.8rem;
+      line-height: 1.7;
+      overflow-x: auto;
+      position: relative;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.72rem;
+      padding: 0.2rem 0.55rem;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+    .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+    /* syntax colours */
+    .kw  { color: #bb9af7; }   /* keyword */
+    .fn  { color: #7aa2f7; }   /* function */
+    .st  { color: #9ece6a; }   /* string */
+    .nm  { color: var(--orange); }  /* number */
+    .cm  { color: var(--muted); }   /* comment */
+    .bl  { color: var(--pink);  }   /* bool */
+    .key { color: var(--accent2); } /* dict key */
+
+    /* ── Result count bar ── */
+    .result-bar {
+      padding: 0 2rem 0.75rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .result-bar strong { color: var(--text); }
+
+    /* ── Welcome modal ── */
+    .welcome-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 30;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .welcome-overlay.open { display: flex; }
+
+    .welcome-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 520px;
+      padding: 2rem;
+    }
+    .welcome-panel h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .welcome-panel h2 span { color: var(--accent); }
+    .welcome-intro {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    .welcome-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+    .welcome-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.85rem 1rem;
+    }
+    .step-icon {
+      font-size: 1.25rem;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 0.05rem;
+    }
+    .step-text strong {
+      display: block;
+      font-size: 0.88rem;
+      margin-bottom: 0.2rem;
+    }
+    .step-text p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .welcome-note {
+      font-size: 0.78rem;
+      color: var(--muted);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    .welcome-note strong { color: var(--text); }
+    .welcome-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 0.75rem;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    .welcome-btn:hover { opacity: 0.88; }
+
+    /* ── Help button in header ── */
+    .help-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.78rem;
+      padding: 0.25rem 0.7rem;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .help-btn:hover { color: var(--text); border-color: var(--accent); }
+
+    /* ── Panel header with art ── */
     .panel-header {
       display: flex;
       gap: 1rem;
@@ -426,13 +478,12 @@
     }
     .panel-art-wrap {
       flex-shrink: 0;
-      width: 88px;
-      height: 88px;
+      width: 96px;
+      height: 96px;
       border-radius: 8px;
       overflow: hidden;
       background: var(--card);
       border: 1px solid var(--border);
-      position: relative;
     }
     .panel-art-wrap img {
       width: 100%;
@@ -448,161 +499,39 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.8rem;
+      font-size: 2rem;
       color: var(--border);
       position: absolute;
       top: 0; left: 0;
     }
+    .panel-art-wrap { position: relative; }
     .panel-info { flex: 1; min-width: 0; }
-    .panel-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      margin-bottom: 0.15rem;
-      line-height: 1.3;
-    }
-    .panel-artist {
-      color: var(--accent2);
-      font-size: 0.85rem;
-      margin-bottom: 0.6rem;
-    }
+    .panel-info .panel-title { margin-bottom: 0.15rem; }
+    .panel-info .panel-artist { margin-bottom: 0.6rem; }
+
+    /* ── Preview audio ── */
     .preview-wrap { margin-top: 0.5rem; }
     .preview-wrap audio {
       width: 100%;
-      height: 30px;
+      height: 32px;
       border-radius: 6px;
       accent-color: var(--accent);
     }
-    .preview-loading { font-size: 0.72rem; color: var(--muted); font-style: italic; }
-    .preview-none    { font-size: 0.72rem; color: var(--muted); }
-
-    .panel h3 {
-      font-size: 0.68rem;
-      letter-spacing: 0.09em;
-      text-transform: uppercase;
+    .preview-loading {
+      font-size: 0.75rem;
       color: var(--muted);
-      margin-bottom: 0.55rem;
-      margin-top: 1.2rem;
+      font-style: italic;
     }
-
-    /* ── Code block ── */
-    pre {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1rem;
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      line-height: 1.72;
-      overflow-x: auto;
-      position: relative;
-    }
-    .copy-btn {
-      position: absolute;
-      top: 0.5rem;
-      right: 0.5rem;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 6px;
+    .preview-none {
+      font-size: 0.75rem;
       color: var(--muted);
-      cursor: pointer;
-      font-size: 0.7rem;
-      padding: 0.18rem 0.5rem;
-      transition: color 0.15s, border-color 0.15s;
     }
-    .copy-btn:hover { color: var(--text); border-color: var(--accent); }
-    .copy-btn.copied { color: var(--green); border-color: var(--green); }
-
-    /* syntax colours */
-    .kw  { color: #bb9af7; }
-    .fn  { color: #7aa2f7; }
-    .st  { color: #9ece6a; }
-    .nm  { color: var(--orange); }
-    .cm  { color: var(--muted); }
-    .bl  { color: var(--pink); }
-    .key { color: var(--accent2); }
-
-    /* ── Welcome modal ── */
-    .welcome-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.78);
-      z-index: 300;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-    }
-    .welcome-overlay.open { display: flex; }
-    .welcome-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      width: 100%;
-      max-width: 500px;
-      padding: 2rem;
-    }
-    .welcome-panel h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      margin-bottom: 0.5rem;
-    }
-    .welcome-panel h2 span { color: var(--accent); }
-    .welcome-intro {
-      font-size: 0.85rem;
-      color: var(--muted);
-      line-height: 1.65;
-      margin-bottom: 1.4rem;
-    }
-    .welcome-steps {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      margin-bottom: 1.4rem;
-    }
-    .welcome-step {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.8rem;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 0.8rem 1rem;
-    }
-    .step-icon { font-size: 1.2rem; line-height: 1; flex-shrink: 0; margin-top: 0.05rem; }
-    .step-text strong { display: block; font-size: 0.85rem; margin-bottom: 0.2rem; }
-    .step-text p { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
-    .welcome-note {
-      font-size: 0.76rem;
-      color: var(--muted);
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 0.7rem 1rem;
-      line-height: 1.6;
-      margin-bottom: 1.4rem;
-    }
-    .welcome-note strong { color: var(--text); }
-    .welcome-btn {
-      width: 100%;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius);
-      font-size: 0.92rem;
-      font-weight: 600;
-      padding: 0.7rem;
-      cursor: pointer;
-      transition: opacity 0.15s;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-    }
-    .welcome-btn:hover { opacity: 0.88; }
   </style>
 </head>
 <body>
 
 <header>
-  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="color:var(--accent);flex-shrink:0">
+  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="color:var(--accent)">
     <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"/>
   </svg>
   <h1>Music <span>Data Explorer</span></h1>
@@ -612,7 +541,7 @@
 
 <div class="controls">
   <div class="search-wrap">
-    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
       <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/>
     </svg>
     <input type="search" id="searchInput" placeholder="Search by title, artist or album…" autocomplete="off" />
@@ -623,71 +552,52 @@
 </div>
 
 <div class="result-bar" id="resultBar"></div>
-
-<div class="table-wrap">
-  <table id="songTable">
-    <thead>
-      <tr>
-        <th class="col-idx no-sort">#</th>
-        <th class="col-art no-sort"></th>
-        <th class="col-title" data-key="title">Title <i class="sort-icon">↕</i></th>
-        <th class="col-artist" data-key="artist">Artist <i class="sort-icon">↕</i></th>
-        <th class="col-album" data-key="album">Album <i class="sort-icon">↕</i></th>
-        <th class="col-year num" data-key="year">Year <i class="sort-icon">↕</i></th>
-        <th class="col-genre" data-key="genre">Genre <i class="sort-icon">↕</i></th>
-        <th class="col-dur num" data-key="duration">Time <i class="sort-icon">↕</i></th>
-        <th class="col-bpm num" data-key="bpm">BPM <i class="sort-icon">↕</i></th>
-        <th class="col-plays num" data-key="play_count">Plays <i class="sort-icon">↕</i></th>
-        <th class="col-exp no-sort">E</th>
-      </tr>
-    </thead>
-    <tbody id="tbody"></tbody>
-  </table>
-</div>
-
-<div class="pagination" id="pagination"></div>
+<div class="grid" id="grid"></div>
 
 <!-- Welcome modal -->
 <div class="welcome-overlay open" id="welcomeOverlay">
   <div class="welcome-panel">
     <h2>Welcome to the Music <span>Data Explorer</span> 🎵</h2>
     <p class="welcome-intro">
-      Browse real songs stored as Python dictionaries — the same data your
-      exercises use. Find a song you like, then see exactly how to access
-      it in your Python code.
+      This tool lets you browse real songs stored as Python dictionaries —
+      the same data your exercises use. Find a song you like, then see
+      exactly how to access it in your Python code.
     </p>
+
     <div class="welcome-steps">
       <div class="welcome-step">
         <div class="step-icon">🔍</div>
         <div class="step-text">
           <strong>Search or filter</strong>
-          <p>Type a title, artist, or album in the search bar. Use the
-             genre dropdown to narrow things down. Click column headers to sort.</p>
+          <p>Type a song title, artist name, or album in the search bar.
+             Use the genre dropdown to narrow things down.</p>
         </div>
       </div>
       <div class="welcome-step">
-        <div class="step-icon">🎵</div>
+        <div class="step-icon">🃏</div>
         <div class="step-text">
-          <strong>Click any row</strong>
-          <p>Find a song you recognise and click its row to open the
-             Python code panel — with album art and a 30s preview.</p>
+          <strong>Click any card</strong>
+          <p>Find a song you recognise and click its card to open the
+             Python code panel.</p>
         </div>
       </div>
       <div class="welcome-step">
         <div class="step-icon">🐍</div>
         <div class="step-text">
           <strong>Copy the Python code</strong>
-          <p>The panel shows the exact lines to paste into your exercise —
-             including the index number and every field value.</p>
+          <p>The panel shows you the exact lines to paste into your
+             exercise — including the index number and every field value.</p>
         </div>
       </div>
     </div>
+
     <div class="welcome-note">
       <strong>A note on the library:</strong> this is a sample of songs
       from 70 popular artists — roughly 9,000 tracks in total. It's not
       exhaustive, and your favourite song might not be here. That's totally
-      fine! The data is here to make the exercises feel more real.
+      fine! The data is just here to make the exercises feel more real.
     </div>
+
     <button class="welcome-btn" id="welcomeClose">Let's explore →</button>
   </div>
 </div>
@@ -727,30 +637,28 @@
 
 <script>
 let songLibrary = [];
-let filtered    = [];
+let filtered = [];
 
-// ── Sort + pagination state ────────────────────────────────
-let sortKey = null;
-let sortDir = 1;        // 1 = asc, -1 = desc
-let currentPage = 0;
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 100;   // max cards rendered at once
 
 // ── Load data ──────────────────────────────────────────────
 fetch('https://raw.githubusercontent.com/mnckapilan/python-music-workshop/main/data/songs.json')
   .then(r => r.json())
   .then(data => {
+    // Pre-compute once: index and a single lowercase search key per song.
+    // This avoids repeated .indexOf() and .toLowerCase() calls on every keystroke.
     songLibrary = data.map((s, i) => ({
       ...s,
       _idx: i,
       _key: `${s.title} ${s.artist} ${s.album}`.toLowerCase(),
     }));
-    document.getElementById('totalCount').textContent = `${songLibrary.length.toLocaleString()} songs`;
+    document.getElementById('totalCount').textContent = `${songLibrary.length} songs`;
     buildGenreFilter();
     applyFilters();
   })
   .catch(() => {
-    document.getElementById('tbody').innerHTML =
-      '<tr><td class="empty-cell" colspan="11">Could not load song data. Check your internet connection and try refreshing.</td></tr>';
+    document.getElementById('grid').innerHTML =
+      '<p class="empty">Could not load song data. Check your internet connection and try refreshing.</p>';
   });
 
 // ── Genre filter ───────────────────────────────────────────
@@ -759,7 +667,8 @@ function buildGenreFilter() {
   const sel = document.getElementById('genreFilter');
   genres.forEach(g => {
     const opt = document.createElement('option');
-    opt.value = g; opt.textContent = g;
+    opt.value = g;
+    opt.textContent = g;
     sel.appendChild(opt);
   });
 }
@@ -768,15 +677,18 @@ function buildGenreFilter() {
 function applyFilters() {
   const q     = document.getElementById('searchInput').value.toLowerCase().trim();
   const genre = document.getElementById('genreFilter').value;
+
   filtered = songLibrary.filter(s => {
-    const matchQ = !q || s._key.includes(q);
+    const matchQ = !q || s._key.includes(q);   // single pre-lowercased string
     const matchG = !genre || s.genre === genre;
     return matchQ && matchG;
   });
-  currentPage = 0;
-  renderList();
+
+  renderGrid();
 }
 
+// Debounce search input — wait 150 ms after the last keystroke before filtering.
+// Genre dropdown fires immediately (it's a deliberate click, not rapid typing).
 let _debounce;
 document.getElementById('searchInput').addEventListener('input', () => {
   clearTimeout(_debounce);
@@ -784,133 +696,51 @@ document.getElementById('searchInput').addEventListener('input', () => {
 });
 document.getElementById('genreFilter').addEventListener('change', applyFilters);
 
-// ── Sort ───────────────────────────────────────────────────
-function sortedFiltered() {
-  if (!sortKey) return filtered;
-  return [...filtered].sort((a, b) => {
-    const av = a[sortKey], bv = b[sortKey];
-    if (typeof av === 'string') return av.localeCompare(bv) * sortDir;
-    return (av - bv) * sortDir;
-  });
-}
-
-document.querySelectorAll('th[data-key]').forEach(th => {
-  th.addEventListener('click', () => {
-    const key = th.dataset.key;
-    if (sortKey === key) {
-      sortDir *= -1;
-    } else {
-      sortKey = key;
-      sortDir = 1;
-    }
-    currentPage = 0;
-    updateSortHeaders();
-    renderList();
-  });
-});
-
-function updateSortHeaders() {
-  document.querySelectorAll('th[data-key]').forEach(th => {
-    const key = th.dataset.key;
-    th.classList.toggle('sorted', key === sortKey);
-    const icon = th.querySelector('.sort-icon');
-    if (icon) {
-      if (key === sortKey) {
-        icon.textContent = sortDir === 1 ? '↑' : '↓';
-      } else {
-        icon.textContent = '↕';
-      }
-    }
-  });
-}
-
-// ── Helpers ────────────────────────────────────────────────
-function esc(str) {
-  return String(str)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function fmtDur(secs) {
-  const m = Math.floor(secs / 60);
-  const s = String(secs % 60).padStart(2, '0');
-  return `${m}:${s}`;
-}
-
-// ── Render list ────────────────────────────────────────────
-function renderList() {
-  const tbody = document.getElementById('tbody');
-  const bar   = document.getElementById('resultBar');
+// ── Render cards ───────────────────────────────────────────
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  const bar  = document.getElementById('resultBar');
 
   if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td class="empty-cell" colspan="11">No songs match your search.</td></tr>';
+    grid.innerHTML = '<p class="empty">No songs match your search.</p>';
     bar.innerHTML = '';
-    document.getElementById('pagination').innerHTML = '';
     return;
   }
 
-  const sorted  = sortedFiltered();
-  const pages   = Math.ceil(sorted.length / PAGE_SIZE);
-  currentPage   = Math.min(currentPage, pages - 1);
-  const start   = currentPage * PAGE_SIZE;
-  const visible = sorted.slice(start, start + PAGE_SIZE);
+  const visible = filtered.slice(0, PAGE_SIZE);
+  const more    = filtered.length - visible.length;
+  const moreMsg = more > 0 ? ` — refine your search to see the remaining <strong>${more.toLocaleString()}</strong>` : '';
+  bar.innerHTML  = `Showing <strong>${visible.length.toLocaleString()}</strong> of <strong>${filtered.length.toLocaleString()}</strong> matches${moreMsg} — click any card for Python code`;
 
-  bar.innerHTML = `Showing <strong>${(start + 1).toLocaleString()}–${Math.min(start + PAGE_SIZE, sorted.length).toLocaleString()}</strong> of <strong>${sorted.length.toLocaleString()}</strong> songs — click any row for Python code`;
-
-  tbody.innerHTML = visible.map(s => {
-    const expCell = s.explicit ? '<span class="badge exp" title="Explicit">E</span>' : '';
+  // _idx was stored at load time — no indexOf() scan needed
+  grid.innerHTML = visible.map(s => {
+    const expBadge = s.explicit ? '<span class="badge exp">explicit</span>' : '';
     return `
-      <tr onclick="openPanel(${s._idx})">
-        <td class="col-idx">${s._idx}</td>
-        <td class="col-art">
-          <div class="row-art" data-idx="${s._idx}">
-            <span class="row-art-placeholder">♪</span>
-          </div>
-        </td>
-        <td class="col-title"><span class="row-title-text" title="${esc(s.title)}">${esc(s.title)}</span></td>
-        <td class="col-artist"><span title="${esc(s.artist)}">${esc(s.artist)}</span></td>
-        <td class="col-album"><span title="${esc(s.album)}">${esc(s.album)}</span></td>
-        <td class="col-year">${s.year}</td>
-        <td class="col-genre"><span class="badge" data-genre="${esc(s.genre)}">${esc(s.genre)}</span></td>
-        <td class="col-dur">${fmtDur(s.duration)}</td>
-        <td class="col-bpm">${s.bpm}</td>
-        <td class="col-plays">${s.play_count.toLocaleString()}</td>
-        <td class="col-exp">${expCell}</td>
-      </tr>`;
+      <div class="card" onclick="openPanel(${s._idx})">
+        <div class="card-art" data-idx="${s._idx}">
+          <div class="card-art-placeholder">♪</div>
+        </div>
+        <div class="card-index">song_library[${s._idx}]</div>
+        <div class="card-title" title="${esc(s.title)}">${esc(s.title)}</div>
+        <div class="card-artist">${esc(s.artist)}</div>
+        <div class="card-meta">
+          <span class="badge genre" data-genre="${esc(s.genre)}">${esc(s.genre)}</span>
+          <span class="badge bpm">${s.bpm} BPM</span>
+          <span class="badge year">${s.year}</span>
+          ${expBadge}
+        </div>
+      </div>`;
   }).join('');
 
-  observeRowArt();
-  renderPagination(pages);
+  observeCardArt();
 }
 
-// ── Pagination ─────────────────────────────────────────────
-function renderPagination(pages) {
-  const el = document.getElementById('pagination');
-  if (pages <= 1) { el.innerHTML = ''; return; }
-
-  const p = currentPage;
-  let html = '';
-
-  html += `<button class="page-btn nav" ${p === 0 ? 'disabled' : ''} onclick="goPage(${p - 1})">← Prev</button>`;
-
-  // page number buttons — show first, last, and window around current
-  const show = new Set([0, pages - 1, p - 1, p, p + 1].filter(n => n >= 0 && n < pages));
-  let prev = -1;
-  [...show].sort((a,b) => a-b).forEach(n => {
-    if (prev !== -1 && n > prev + 1) html += `<span class="page-ellipsis">…</span>`;
-    html += `<button class="page-btn${n === p ? ' active' : ''}" onclick="goPage(${n})">${n + 1}</button>`;
-    prev = n;
-  });
-
-  html += `<button class="page-btn nav" ${p === pages - 1 ? 'disabled' : ''} onclick="goPage(${p + 1})">Next →</button>`;
-
-  el.innerHTML = html;
-}
-
-function goPage(n) {
-  currentPage = n;
-  renderList();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
 }
 
 // ── iTunes lookup (lazy, cached) ───────────────────────────
@@ -924,7 +754,7 @@ function fetchItunesData(s) {
     .then(data => {
       const results = data.results || [];
       const match = results.find(r =>
-        r.trackName?.toLowerCase()  === s.title.toLowerCase() &&
+        r.trackName?.toLowerCase() === s.title.toLowerCase() &&
         r.artistName?.toLowerCase() === s.artist.toLowerCase()
       ) || results[0] || null;
       const result = match ? {
@@ -937,18 +767,18 @@ function fetchItunesData(s) {
     .catch(() => { _itunesCache[s._idx] = null; return null; });
 }
 
-// ── Lazy row art via IntersectionObserver ──────────────────
+// ── Lazy card art via IntersectionObserver ─────────────────
 let _artObserver = null;
 
-function observeRowArt() {
+function observeCardArt() {
   if (_artObserver) _artObserver.disconnect();
   _artObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return;
       _artObserver.unobserve(entry.target);
-      const el  = entry.target;
+      const el = entry.target;
       const idx = parseInt(el.dataset.idx, 10);
-      const s   = songLibrary[idx];
+      const s = songLibrary[idx];
       fetchItunesData(s).then(data => {
         if (!data?.artwork || !document.contains(el)) return;
         const img = document.createElement('img');
@@ -958,17 +788,18 @@ function observeRowArt() {
         el.appendChild(img);
       });
     });
-  }, { rootMargin: '100px' });
-  document.querySelectorAll('.row-art').forEach(el => _artObserver.observe(el));
+  }, { rootMargin: '200px' });  // pre-load slightly before entering view
+
+  document.querySelectorAll('.card-art').forEach(el => _artObserver.observe(el));
 }
 
-// ── Panel media (art + preview) ────────────────────────────
 function populatePanelMedia(s) {
   const artWrap    = document.getElementById('panelArtWrap');
   const artImg     = document.getElementById('panelArt');
   const artHolder  = document.getElementById('panelArtPlaceholder');
   const previewDiv = document.getElementById('panelPreview');
 
+  // Reset to loading state
   artWrap.classList.add('loading');
   artImg.style.opacity = '0';
   artHolder.style.display = 'flex';
@@ -985,9 +816,12 @@ function populatePanelMedia(s) {
     } else {
       artWrap.classList.remove('loading');
     }
-    previewDiv.innerHTML = data?.preview
-      ? `<audio controls preload="none" src="${data.preview}"></audio>`
-      : '<span class="preview-none">No preview available</span>';
+
+    if (data?.preview) {
+      previewDiv.innerHTML = `<audio controls preload="none" src="${data.preview}"></audio>`;
+    } else {
+      previewDiv.innerHTML = '<span class="preview-none">No preview available</span>';
+    }
   });
 }
 
@@ -996,8 +830,13 @@ function openPanel(i) {
   const s = songLibrary[i];
   document.getElementById('panelTitle').textContent  = s.title;
   document.getElementById('panelArtist').textContent = s.artist + ' · ' + s.year;
-  document.getElementById('codeIndex').innerHTML  = formatIndexCode(s, i);
+
+  // Code block 1 — index access
+  document.getElementById('codeIndex').innerHTML = formatIndexCode(s, i);
+
+  // Code block 2 — search by artist
   document.getElementById('codeSearch').innerHTML = formatSearchCode(s);
+
   document.getElementById('overlay').classList.add('open');
   populatePanelMedia(s);
 }
@@ -1006,11 +845,12 @@ function kw(s)  { return `<span class="kw">${s}</span>`; }
 function fn(s)  { return `<span class="fn">${s}</span>`; }
 function st(s)  { return `<span class="st">"${s}"</span>`; }
 function nm(n)  { return `<span class="nm">${n}</span>`; }
+function bl(b)  { return `<span class="bl">${b}</span>`; }
 function cm(s)  { return `<span class="cm">${s}</span>`; }
 function key(s) { return `<span class="key">"${s}"</span>`; }
 
 function formatIndexCode(s, i) {
-  return [
+  const lines = [
     `${kw('from')} music_data ${kw('import')} song_library`,
     ``,
     `song = song_library[${nm(i)}]  ${cm('# ' + s.title + ' — ' + s.artist)}`,
@@ -1024,12 +864,13 @@ function formatIndexCode(s, i) {
     `${fn('print')}(song[${key('bpm')}])         ${cm('# → ' + s.bpm)}`,
     `${fn('print')}(song[${key('explicit')}])    ${cm('# → ' + s.explicit)}`,
     `${fn('print')}(song[${key('play_count')}])  ${cm('# → ' + s.play_count)}`,
-  ].join('\n');
+  ];
+  return lines.join('\n');
 }
 
 function formatSearchCode(s) {
   const artistStr = s.artist.replace(/"/g, '\\"');
-  return [
+  const lines = [
     `${kw('from')} music_data ${kw('import')} song_library`,
     ``,
     `${cm('# Find all songs by this artist:')}`,
@@ -1042,7 +883,8 @@ function formatSearchCode(s) {
     ``,
     `${kw('for')} song ${kw('in')} results:`,
     `    ${fn('print')}(song[${key('title')}])`,
-  ].join('\n');
+  ];
+  return lines.join('\n');
 }
 
 // ── Close panel ────────────────────────────────────────────
@@ -1062,18 +904,26 @@ document.getElementById('helpBtn').addEventListener('click', () => {
   document.getElementById('welcomeOverlay').classList.add('open');
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeWelcome(); closePanel(); }
+  if (e.key === 'Escape') {
+    closeWelcome();
+    closePanel();
+  }
 });
+
 function closeWelcome() {
   document.getElementById('welcomeOverlay').classList.remove('open');
 }
 
 // ── Copy button ────────────────────────────────────────────
 function copyCode(id, btn) {
-  navigator.clipboard.writeText(document.getElementById(id).innerText).then(() => {
+  const text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text).then(() => {
     btn.textContent = 'copied!';
     btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1800);
+    setTimeout(() => {
+      btn.textContent = 'copy';
+      btn.classList.remove('copied');
+    }, 1800);
   });
 }
 </script>
