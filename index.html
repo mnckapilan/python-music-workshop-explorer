@@ -137,71 +137,73 @@
     }
     input[type="search"]::placeholder { color: var(--muted); }
 
-    /* ── List header + rows ── */
+    /* ── Table ── */
     :root { --header-h: 64px; }  /* refined by JS after render */
 
-    .list-header {
-      display: flex;
-      align-items: center;
+    .table-wrap { padding: 0 2rem 2rem; }
+
+    table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    /* Sticky per-th (not thead) works regardless of any overflow-x on ancestors */
+    th {
       position: sticky;
       top: var(--header-h);
-      z-index: 9;
       background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0 2rem;
+      z-index: 5;
+      padding: 0 0.75rem;
       height: 36px;
-      user-select: none;
-    }
-    .list-header .col {
+      text-align: left;
       font-size: 0.67rem;
       font-weight: 600;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--muted);
-      cursor: pointer;
-      transition: color 0.12s;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
       white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.12s;
+    }
+    th:hover { color: var(--text); }
+    th.sorted { color: var(--accent2); }
+    th.no-sort { cursor: default; }
+    th.no-sort:hover { color: var(--muted); }
+    th.r { text-align: right; }
+
+    td {
+      padding: 0 0.75rem;
+      height: 48px;
+      vertical-align: middle;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding: 0 0.5rem;
+      white-space: nowrap;
     }
-    .list-header .col:hover { color: var(--text); }
-    .list-header .col.sorted { color: var(--accent2); }
-    .list-header .col.no-sort { cursor: default; }
-    .list-header .col.no-sort:hover { color: var(--muted); }
 
-    .list-body { padding: 0 2rem; }
-
-    .list-row {
-      display: flex;
-      align-items: center;
-      height: 48px;
+    tbody tr {
       border-bottom: 1px solid rgba(54,47,43,0.5);
       cursor: pointer;
       transition: background 0.08s;
     }
-    .list-row:hover { background: var(--card-hover); }
-    .list-row:hover .col-idx { box-shadow: inset 2px 0 0 var(--accent); }
+    tbody tr:hover td             { background: var(--card-hover); }
+    tbody tr:hover td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
 
-    .list-row .col, .list-header .col {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      padding: 0 0.5rem;
-    }
-    /* column widths — must match exactly between header and rows.
-       flex: 0 0 Npx = fixed, won't grow or shrink.
-       flex: N 1 0   = flexible, will shrink to fit. */
-    .col-idx    { flex: 0 0 60px;  font-family: "SF Mono","Fira Code",monospace; font-size: 0.7rem; color: var(--muted); }
-    .col-title  { flex: 2 1 0;     min-width: 80px; font-weight: 500; }
-    .col-artist { flex: 1.5 1 0;   min-width: 60px; color: var(--accent2); font-size: 0.84rem; }
-    .col-album  { flex: 1 1 0;     min-width: 60px; color: var(--muted);   font-size: 0.82rem; }
-    .col-year   { flex: 0 0 50px;  text-align: right; font-family: "SF Mono","Fira Code",monospace; font-size: 0.75rem; color: var(--muted); }
-    .col-genre  { flex: 0 0 110px; }
-    .col-dur    { flex: 0 0 48px;  text-align: right; font-family: "SF Mono","Fira Code",monospace; font-size: 0.75rem; color: var(--muted); }
-    .col-bpm    { flex: 0 0 48px;  text-align: right; font-family: "SF Mono","Fira Code",monospace; font-size: 0.75rem; color: var(--accent2); }
-    .col-plays  { flex: 0 0 56px;  text-align: right; font-family: "SF Mono","Fira Code",monospace; font-size: 0.75rem; color: var(--muted); }
-    .col-exp    { flex: 0 0 32px;  text-align: center; }
+    /* per-column type styles (applied to both th and td via class) */
+    .c-idx   { width: 60px; font-family: "SF Mono","Fira Code",monospace; font-size: 0.7rem;  color: var(--muted); }
+    .c-title { font-weight: 500; }
+    .c-artist{ color: var(--accent2); font-size: 0.84rem; }
+    .c-album { color: var(--muted);   font-size: 0.82rem; }
+    .c-year  { width: 52px; text-align: right; font-family: "SF Mono","Fira Code",monospace; font-size: 0.75rem; color: var(--muted); }
+    .c-genre { width: 110px; }
+    .c-dur   { width: 50px; text-align: right; font-family: "SF Mono","Fira Code",monospace; font-size: 0.75rem; color: var(--muted); }
+    .c-bpm   { width: 50px; text-align: right; font-family: "SF Mono","Fira Code",monospace; font-size: 0.75rem; color: var(--accent2); }
+    .c-plays { width: 56px; text-align: right; font-family: "SF Mono","Fira Code",monospace; font-size: 0.75rem; color: var(--muted); }
+    .c-exp   { width: 34px; text-align: center; }
 
     /* ── Pagination ── */
     .pagination {
@@ -501,19 +503,37 @@
 
 <div class="result-bar" id="resultBar"></div>
 
-<div class="list-header" id="listHeader">
-  <div class="col col-idx no-sort">#</div>
-  <div class="col col-title"  data-key="title">Title</div>
-  <div class="col col-artist" data-key="artist">Artist</div>
-  <div class="col col-album"  data-key="album">Album</div>
-  <div class="col col-year"   data-key="year">Year</div>
-  <div class="col col-genre"  data-key="genre">Genre</div>
-  <div class="col col-dur"    data-key="duration">Time</div>
-  <div class="col col-bpm"    data-key="bpm">BPM</div>
-  <div class="col col-plays"  data-key="play_count">Plays</div>
-  <div class="col col-exp no-sort">E</div>
+<div class="table-wrap">
+  <table>
+    <colgroup>
+      <col class="c-idx">
+      <col><!-- title — takes remaining width -->
+      <col style="width:20%"><!-- artist -->
+      <col style="width:16%"><!-- album -->
+      <col class="c-year">
+      <col class="c-genre">
+      <col class="c-dur">
+      <col class="c-bpm">
+      <col class="c-plays">
+      <col class="c-exp">
+    </colgroup>
+    <thead>
+      <tr>
+        <th class="c-idx no-sort">#</th>
+        <th class="c-title"  data-key="title">Title</th>
+        <th class="c-artist" data-key="artist">Artist</th>
+        <th class="c-album"  data-key="album">Album</th>
+        <th class="c-year  r" data-key="year">Year</th>
+        <th class="c-genre"  data-key="genre">Genre</th>
+        <th class="c-dur   r" data-key="duration">Time</th>
+        <th class="c-bpm   r" data-key="bpm">BPM</th>
+        <th class="c-plays r" data-key="play_count">Plays</th>
+        <th class="c-exp no-sort">E</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
 </div>
-<div class="list-body" id="listBody"></div>
 <div class="pagination" id="pagination"></div>
 
 <!-- Welcome modal -->
@@ -613,8 +633,8 @@ fetch('https://raw.githubusercontent.com/mnckapilan/python-music-workshop/main/d
     applyFilters();
   })
   .catch(() => {
-    document.getElementById('listBody').innerHTML =
-      '<p class="empty">Could not load song data. Check your internet connection and try refreshing.</p>';
+    document.getElementById('tbody').innerHTML =
+      '<tr><td colspan="10" class="empty">Could not load song data. Check your internet connection and try refreshing.</td></tr>';
   });
 
 // ── Genre filter ───────────────────────────────────────────
@@ -652,9 +672,9 @@ document.getElementById('searchInput').addEventListener('input', () => {
 document.getElementById('genreFilter').addEventListener('change', applyFilters);
 
 // ── Sort ───────────────────────────────────────────────────
-document.querySelectorAll('.list-header .col[data-key]').forEach(col => {
-  col.addEventListener('click', () => {
-    const key = col.dataset.key;
+document.querySelectorAll('thead th[data-key]').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.key;
     sortDir = (sortKey === key) ? -sortDir : 1;
     sortKey = key;
     currentPage = 0;
@@ -663,14 +683,15 @@ document.querySelectorAll('.list-header .col[data-key]').forEach(col => {
   });
 });
 
+const COL_LABELS = { title:'Title', artist:'Artist', album:'Album', year:'Year',
+  genre:'Genre', duration:'Time', bpm:'BPM', play_count:'Plays' };
+
 function updateSortUI() {
-  document.querySelectorAll('.list-header .col[data-key]').forEach(col => {
-    const active = col.dataset.key === sortKey;
-    col.classList.toggle('sorted', active);
-    const label = col.dataset.key.charAt(0).toUpperCase() + col.dataset.key.slice(1).replace('_', ' ');
-    const baseLabel = { title:'Title', artist:'Artist', album:'Album', year:'Year',
-      genre:'Genre', duration:'Time', bpm:'BPM', play_count:'Plays' }[col.dataset.key] || label;
-    col.textContent = active ? `${baseLabel} ${sortDir === 1 ? '↑' : '↓'}` : baseLabel;
+  document.querySelectorAll('thead th[data-key]').forEach(th => {
+    const active = th.dataset.key === sortKey;
+    th.classList.toggle('sorted', active);
+    const base = COL_LABELS[th.dataset.key] || th.dataset.key;
+    th.textContent = active ? `${base} ${sortDir === 1 ? '↑' : '↓'}` : base;
   });
 }
 
@@ -689,12 +710,12 @@ function fmtDur(secs) {
 
 // ── Render list ────────────────────────────────────────────
 function renderList() {
-  const body = document.getElementById('listBody');
-  const bar  = document.getElementById('resultBar');
+  const tbody = document.getElementById('tbody');
+  const bar   = document.getElementById('resultBar');
 
   if (filtered.length === 0) {
-    body.innerHTML = '<p class="empty">No songs match your search.</p>';
-    bar.innerHTML  = '';
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">No songs match your search.</td></tr>';
+    bar.innerHTML   = '';
     document.getElementById('pagination').innerHTML = '';
     return;
   }
@@ -708,20 +729,20 @@ function renderList() {
 
   bar.innerHTML = `Showing <strong>${(start + 1).toLocaleString()}–${end.toLocaleString()}</strong> of <strong>${sorted.length.toLocaleString()}</strong> songs — click any row for Python code`;
 
-  body.innerHTML = visible.map(s => {
+  tbody.innerHTML = visible.map(s => {
     const expBadge = s.explicit ? '<span class="badge exp">E</span>' : '';
-    return `<div class="list-row" onclick="openPanel(${s._idx})">
-      <div class="col col-idx">${s._idx}</div>
-      <div class="col col-title" title="${esc(s.title)}">${esc(s.title)}</div>
-      <div class="col col-artist" title="${esc(s.artist)}">${esc(s.artist)}</div>
-      <div class="col col-album" title="${esc(s.album)}">${esc(s.album)}</div>
-      <div class="col col-year">${s.year}</div>
-      <div class="col col-genre"><span class="badge" data-genre="${esc(s.genre)}">${esc(s.genre)}</span></div>
-      <div class="col col-dur">${fmtDur(s.duration)}</div>
-      <div class="col col-bpm">${s.bpm}</div>
-      <div class="col col-plays">${s.play_count}</div>
-      <div class="col col-exp">${expBadge}</div>
-    </div>`;
+    return `<tr onclick="openPanel(${s._idx})">
+      <td class="c-idx">${s._idx}</td>
+      <td class="c-title" title="${esc(s.title)}">${esc(s.title)}</td>
+      <td class="c-artist" title="${esc(s.artist)}">${esc(s.artist)}</td>
+      <td class="c-album" title="${esc(s.album)}">${esc(s.album)}</td>
+      <td class="c-year">${s.year}</td>
+      <td class="c-genre"><span class="badge" data-genre="${esc(s.genre)}">${esc(s.genre)}</span></td>
+      <td class="c-dur">${fmtDur(s.duration)}</td>
+      <td class="c-bpm">${s.bpm}</td>
+      <td class="c-plays">${s.play_count}</td>
+      <td class="c-exp">${expBadge}</td>
+    </tr>`;
   }).join('');
 
   renderPagination(pages);
